@@ -186,6 +186,7 @@ fun DetailScreen(navHostController: NavHostController) {
 
                 }
 
+
                 Spacer(modifier = Modifier.height(10.dp))
 
             }
