@@ -20,17 +20,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import com.app.contact.model.User
-
+import com.app.contact.model.Contact
+import kotlin.math.absoluteValue
 
 
 @Composable
 fun RowContactAdapter(
-    user: User,
-    onClick: (User) -> Unit = {}
+    contact: Contact,
+    onClick: (Contact) -> Unit = {}
 ) {
 
     val colorList = listOf(
@@ -45,22 +46,27 @@ fun RowContactAdapter(
         Color(0xFF78909C)
     )
 
-    val backgroundColor = remember { colorList.random() }
+    val backgroundColor = remember(contact.firstName) {
+        val index = (contact.firstName.hashCode().absoluteValue) % colorList.size
+        colorList[index]
+    }
+
 
     Column (
         modifier = Modifier.wrapContentSize()
             .padding(start = 5.dp)
-            .clickable { onClick(user) },
+            .clickable { onClick(contact) },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        if (user.image.isNotEmpty()){
+        if (contact.image != "null"){
             Image(
-                painter = rememberAsyncImagePainter(user.image),
-                contentDescription = "",
-                modifier = Modifier.size(70.dp)
+                painter = rememberAsyncImagePainter(contact.image),
+                contentDescription = "avatar",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(70.dp)
                     .clip(CircleShape)
-
             )
         }else{
             Box(
@@ -71,7 +77,7 @@ fun RowContactAdapter(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = user.firstName.substring(0, 2).uppercase(),
+                    text = contact.firstName.substring(0, 2).uppercase(),
                     color = Color.White
                 )
             }
@@ -80,7 +86,7 @@ fun RowContactAdapter(
 
         Spacer(modifier = Modifier.height(5.dp))
 
-        Text(text = "${user.firstName} ${user.lastName}",
+        Text(text = "${contact.firstName} ${contact.lastName}",
             modifier = Modifier.align(Alignment.CenterHorizontally),
             style = MaterialTheme.typography.labelSmall,
             )

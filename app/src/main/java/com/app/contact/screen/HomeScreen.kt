@@ -24,6 +24,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,32 +33,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.app.contact.adapter.ContactAdapter
 import com.app.contact.adapter.RowContactAdapter
-import com.app.contact.model.User
+import com.app.contact.db.ContactDatabase
+import com.app.contact.model.Contact
 import com.app.contact.ui.Screens
+import com.app.contact.viewmodel.HomeScreenViewModel
+import androidx.compose.runtime.collectAsState
 
 @Composable
 fun HomeScreen(navHostController: NavHostController){
 
+    val context = LocalContext.current
     var searchText by remember { mutableStateOf("") }
+    val homeScreenViewModel : HomeScreenViewModel = viewModel()
+    val contactDao = ContactDatabase.getDatabase(context).contactDao()
+    val contactList by homeScreenViewModel.contactList.collectAsState()
 
-    val userList = mutableListOf<User>(
-        User("Yunus","Emre","","+905303529085"),
-        User("Yunus","Emre","","+905303529085"),
-        User("Yunus","Emre","","+905303529085"),
-        User("Yunus","Emre","","+905303529085"),
-        User("Yunus","Emre","","+905303529085"),
-        User("Yunus","Emre","","+905303529085"),
-        User("Yunus","Emre","","+905303529085"),
-        User("Yunus","Emre","","+905303529085"),
-        User("Yunus","Emre","","+905303529085"),
-        User("Yunus","Emre","","+905303529085"),
-
-
-    )
+    LaunchedEffect(Unit) {
+        homeScreenViewModel.getAllContacts(contactDao)
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -110,15 +109,15 @@ fun HomeScreen(navHostController: NavHostController){
             LazyRow(
                 modifier = Modifier.padding(horizontal = 5.dp)
             ) {
-                items(userList) { user ->
-                    RowContactAdapter(user)
+                items(contactList.takeLast(10).reversed()) { contact ->
+                    RowContactAdapter(contact)
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "My Contacts (${userList.size})",
+                text = "My Contacts (${contactList.size})",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(start = 10.dp)
             )
@@ -128,9 +127,9 @@ fun HomeScreen(navHostController: NavHostController){
             LazyColumn(
                 modifier = Modifier.padding(start = 5.dp)
             ) {
-                items(userList) { user ->
-                    ContactAdapter(user){
-                        navHostController.navigate(Screens.DetailScreen)
+                items(contactList) { contact ->
+                    println(contact.image)
+                    ContactAdapter(contact){
                     }
                 }
             }

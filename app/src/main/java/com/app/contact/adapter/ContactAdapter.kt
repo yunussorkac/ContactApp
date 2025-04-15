@@ -2,18 +2,16 @@ package com.app.contact.adapter
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,15 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import com.app.contact.model.User
+import com.app.contact.model.Contact
+import kotlin.math.absoluteValue
 
 @Composable
 fun ContactAdapter(
-    user: User,
-    onClick: (User) -> Unit = {}
+    contact: Contact,
+    onClick: (Contact) -> Unit = {}
 ) {
 
     val colorList = listOf(
@@ -45,25 +44,29 @@ fun ContactAdapter(
         Color(0xFF78909C)
     )
 
-    val backgroundColor = remember { colorList.random() }
+    val backgroundColor = remember(contact.firstName) {
+        val index = (contact.firstName.hashCode().absoluteValue) % colorList.size
+        colorList[index]
+    }
 
 
     Row (
         modifier = Modifier.fillMaxWidth()
             .padding( top = 10.dp)
             .clickable{
-                onClick(user)
+                onClick(contact)
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        if (user.image.isNotEmpty()){
+        if (contact.image != "null"){
             Image(
-                painter = rememberAsyncImagePainter(user.image),
-                contentDescription = "",
-                modifier = Modifier.size(70.dp)
+                painter = rememberAsyncImagePainter(contact.image),
+                contentDescription = "avatar",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(70.dp)
                     .clip(CircleShape)
-
             )
         }else{
             Box(
@@ -74,7 +77,7 @@ fun ContactAdapter(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = user.firstName.substring(0, 2).uppercase(),
+                    text = contact.firstName.substring(0, 2).uppercase(),
                     color = Color.White
                 )
             }
@@ -83,7 +86,7 @@ fun ContactAdapter(
 
         Spacer(modifier = Modifier.height(5.dp))
 
-        Text(text = "${user.firstName} ${user.lastName}",
+        Text(text = "${contact.firstName} ${contact.lastName}",
             modifier = Modifier.align(Alignment.CenterVertically)
                 .padding(start = 10.dp),
             style = MaterialTheme.typography.bodyMedium,

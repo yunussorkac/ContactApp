@@ -23,7 +23,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.app.contact.model.User
 import com.app.contact.screen.AddContactScreen
 import com.app.contact.screen.DetailScreen
 import com.app.contact.screen.HomeScreen

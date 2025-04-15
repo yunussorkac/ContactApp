@@ -1,5 +1,8 @@
 package com.app.contact.screen
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -28,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,10 +40,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import com.app.contact.db.ContactDatabase
+import com.app.contact.model.Contact
+import com.app.contact.viewmodel.AddContactScreenViewModel
+import android.net.Uri
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.layout.ContentScale
+import androidx.core.content.ContextCompat
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +66,33 @@ fun AddContactScreen(navHostController: NavHostController) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
-    var image by remember { mutableStateOf("") }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val context = LocalContext.current
+    val addContactScreenViewModel : AddContactScreenViewModel = viewModel()
+    val contactDao = ContactDatabase.getDatabase(context).contactDao()
+
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+            val resolver = context.contentResolver
+            resolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            imagePickerLauncher.launch(arrayOf("image/*"))
+        } else {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     Scaffold(
         topBar = {
@@ -136,18 +180,70 @@ fun AddContactScreen(navHostController: NavHostController) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Image(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "",
-                modifier = Modifier.size(100.dp)
-                    .clip(CircleShape)
+            if (selectedImageUri != null) {
+                Image(
+                    painter = rememberAsyncImagePainter(selectedImageUri),
+                    contentDescription = "avatar",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = "Select Image",
+                    modifier = Modifier.size(100.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            when {
+                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.READ_MEDIA_IMAGES
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        imagePickerLauncher.launch(arrayOf("image/*"))
+                                    } else {
+                                        permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                                    }
+                                }
 
-            )
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.READ_EXTERNAL_STORAGE
+                                ) == PackageManager.PERMISSION_GRANTED -> {
+                                    imagePickerLauncher.launch(arrayOf("image/*"))
+                                }
+
+                                else -> {
+                                    permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                                }
+                            }
+                        },
+                    tint = Color.DarkGray
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
                 onClick = {
+                    addContactScreenViewModel.insertContact(
+                        Contact(
+                            firstName = firstName,
+                            lastName = lastName,
+                            image = selectedImageUri.toString(),
+                            number = phoneNumber),
+                        contactDao
+                    ) {
+                        if (it) {
+                            navHostController.navigateUp()
+                        }
+
+                    }
+
+
 
                 },
                 colors = ButtonDefaults.buttonColors(
