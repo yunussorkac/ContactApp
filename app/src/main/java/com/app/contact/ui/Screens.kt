@@ -8,9 +8,10 @@ sealed class Screens {
     data object HomeScreen
 
     @Serializable
-    data object DetailScreen
+    data class DetailScreen(val id : Int)
 
     @Serializable
     data object AddContactScreen
+
 
 }

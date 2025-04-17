@@ -61,7 +61,9 @@ fun Navigation(navController: NavHostController) {
         }
 
         composable<Screens.DetailScreen> {
-            DetailScreen(navController)
+            val args = it.toRoute<Screens.DetailScreen>()
+            DetailScreen(navController,args.id)
+
 
         }
         composable<Screens.AddContactScreen> {

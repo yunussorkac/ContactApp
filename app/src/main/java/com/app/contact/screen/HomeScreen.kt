@@ -110,7 +110,9 @@ fun HomeScreen(navHostController: NavHostController){
                 modifier = Modifier.padding(horizontal = 5.dp)
             ) {
                 items(contactList.takeLast(10).reversed()) { contact ->
-                    RowContactAdapter(contact)
+                    RowContactAdapter(contact){
+                        navHostController.navigate(Screens.DetailScreen(contact.id))
+                    }
                 }
             }
 
@@ -128,8 +130,8 @@ fun HomeScreen(navHostController: NavHostController){
                 modifier = Modifier.padding(start = 5.dp)
             ) {
                 items(contactList) { contact ->
-                    println(contact.image)
                     ContactAdapter(contact){
+                        navHostController.navigate(Screens.DetailScreen(contact.id))
                     }
                 }
             }
