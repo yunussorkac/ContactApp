@@ -44,18 +44,16 @@ import com.app.contact.model.Contact
 import com.app.contact.ui.Screens
 import com.app.contact.viewmodel.HomeScreenViewModel
 import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun HomeScreen(navHostController: NavHostController){
 
-    val context = LocalContext.current
     var searchText by remember { mutableStateOf("") }
-    val homeScreenViewModel : HomeScreenViewModel = viewModel()
-    val contactDao = ContactDatabase.getDatabase(context).contactDao()
+    val homeScreenViewModel = hiltViewModel<HomeScreenViewModel>()
     val contactList by homeScreenViewModel.contactList.collectAsState()
-
     LaunchedEffect(Unit) {
-        homeScreenViewModel.getAllContacts(contactDao)
+        homeScreenViewModel.getAllContacts()
     }
 
     Scaffold(

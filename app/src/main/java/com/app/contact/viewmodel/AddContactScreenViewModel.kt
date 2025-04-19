@@ -1,23 +1,25 @@
 package com.app.contact.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.contact.dao.ContactDao
 import com.app.contact.model.Contact
 import com.app.contact.repo.AddContactScreenRepo
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AddContactScreenViewModel : ViewModel() {
+@HiltViewModel
+class AddContactScreenViewModel  @Inject constructor(
+    private val repo : AddContactScreenRepo
 
-    private val repo = AddContactScreenRepo()
+) : ViewModel() {
 
 
-    fun insertContact(contact: Contact, contactDao: ContactDao, onComplete : (Boolean) -> Unit) {
+
+    fun insertContact(contact: Contact, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             try {
-                repo.insertContact(contact, contactDao)
+                repo.insertContact(contact)
                 onComplete(true)
             } catch (e: Exception) {
                 onComplete(false)

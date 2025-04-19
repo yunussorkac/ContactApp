@@ -2,28 +2,31 @@ package com.app.contact.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.contact.dao.ContactDao
 import com.app.contact.model.Contact
 import com.app.contact.repo.DetailScreenRepo
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DetailScreenViewModel : ViewModel()  {
+@HiltViewModel
+class DetailScreenViewModel  @Inject constructor(
+    private val detailScreenRepo: DetailScreenRepo
+): ViewModel()  {
 
-    private val detailScreenRepo = DetailScreenRepo()
 
-    suspend fun getContactById(contactDao: ContactDao,id : Int): Contact? {
-        return detailScreenRepo.getContactById(contactDao,id)
+    suspend fun getContactById(id: Int): Contact? {
+        return detailScreenRepo.getContactById(id)
     }
 
-     fun deleteContactById(contactDao: ContactDao, id : Int) {
+     fun deleteContactById(id : Int) {
          viewModelScope.launch {
-             detailScreenRepo.deleteContactById(contactDao, id)
+             detailScreenRepo.deleteContactById(id)
          }
     }
 
-    fun updateContact(contactDao: ContactDao, contact: Contact) {
+    fun updateContact(contact: Contact) {
         viewModelScope.launch {
-            detailScreenRepo.updateContact(contactDao, contact)
+            detailScreenRepo.updateContact(contact)
         }
     }
 

@@ -3,7 +3,6 @@ package com.app.contact.screen
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,22 +18,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,14 +51,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
@@ -79,14 +71,13 @@ import kotlin.math.absoluteValue
 @Composable
 fun DetailScreen(navHostController: NavHostController, id : Int) {
 
-    val context = LocalContext.current
-    val detailScreenViewModel : DetailScreenViewModel = viewModel()
-    val contactDao = ContactDatabase.getDatabase(context).contactDao()
     var contact by remember { mutableStateOf<Contact?>(null) }
 
     var isEditDialogVisible by remember { mutableStateOf(false) }
 
     var refreshState by remember { mutableStateOf(false) }
+
+    val detailScreenViewModel = hiltViewModel<DetailScreenViewModel>()
 
 
     val colorList = listOf(
@@ -102,12 +93,12 @@ fun DetailScreen(navHostController: NavHostController, id : Int) {
     )
 
     LaunchedEffect(Unit) {
-        contact = detailScreenViewModel.getContactById(contactDao, id)
+        contact = detailScreenViewModel.getContactById(id)
     }
 
     LaunchedEffect(refreshState) {
         if (refreshState) {
-            contact = detailScreenViewModel.getContactById(contactDao, id)
+            contact = detailScreenViewModel.getContactById(id)
             refreshState = false
         }
     }
@@ -248,7 +239,7 @@ fun DetailScreen(navHostController: NavHostController, id : Int) {
                         contentDescription = "",
                         modifier = Modifier.size(30.dp)
                             .clickable{
-                                detailScreenViewModel.deleteContactById(contactDao,id)
+                                detailScreenViewModel.deleteContactById(id)
                                 navHostController.navigateUp()
 
 
@@ -313,7 +304,7 @@ fun DetailScreen(navHostController: NavHostController, id : Int) {
 
         if (isEditDialogVisible){
             contact?.let {
-                EditDialog(it,detailScreenViewModel,contactDao) {
+                EditDialog(it,detailScreenViewModel) {
 
                     isEditDialogVisible = false
                     refreshState = true
@@ -331,9 +322,7 @@ fun DetailScreen(navHostController: NavHostController, id : Int) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditDialog(contact: Contact, detailScreenViewModel: DetailScreenViewModel,
-               contactDao: ContactDao,
-               onDismiss: () -> Unit){
+fun EditDialog(contact: Contact, detailScreenViewModel: DetailScreenViewModel, onDismiss: () -> Unit){
 
     val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineScope = rememberCoroutineScope()
@@ -414,7 +403,7 @@ fun EditDialog(contact: Contact, detailScreenViewModel: DetailScreenViewModel,
                             image = contact.image,
                             number = phoneNumber
                         )
-                        detailScreenViewModel.updateContact(contactDao = contactDao,contact)
+                        detailScreenViewModel.updateContact(contact)
                         onDismiss()
 
                     }

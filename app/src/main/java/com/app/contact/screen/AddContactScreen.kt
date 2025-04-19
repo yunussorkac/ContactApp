@@ -40,10 +40,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.app.contact.db.ContactDatabase
 import com.app.contact.model.Contact
 import com.app.contact.viewmodel.AddContactScreenViewModel
 import android.net.Uri
@@ -54,6 +52,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.layout.ContentScale
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,9 +65,8 @@ fun AddContactScreen(navHostController: NavHostController) {
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val context = LocalContext.current
-    val addContactScreenViewModel : AddContactScreenViewModel = viewModel()
-    val contactDao = ContactDatabase.getDatabase(context).contactDao()
 
+    val addContactScreenViewModel = hiltViewModel<AddContactScreenViewModel>()
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -79,6 +77,7 @@ fun AddContactScreen(navHostController: NavHostController) {
             resolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
     }
+
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -231,8 +230,7 @@ fun AddContactScreen(navHostController: NavHostController) {
                             firstName = firstName,
                             lastName = lastName,
                             image = selectedImageUri.toString(),
-                            number = phoneNumber),
-                        contactDao
+                            number = phoneNumber)
                     ) {
                         if (it) {
                             navHostController.navigateUp()

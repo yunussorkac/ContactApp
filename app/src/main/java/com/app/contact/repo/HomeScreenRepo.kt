@@ -2,10 +2,14 @@ package com.app.contact.repo
 
 import com.app.contact.dao.ContactDao
 import com.app.contact.model.Contact
+import javax.inject.Inject
 
-class HomeScreenRepo {
+class HomeScreenRepo @Inject constructor(
+    private val contactDao: ContactDao
 
-    suspend fun getAllContacts(contactDao: ContactDao): List<Contact> {
+) {
+
+    suspend fun getAllContacts(): List<Contact> {
         return contactDao.getAllContacts()
     }
 

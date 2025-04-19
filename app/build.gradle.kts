@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.serialization)
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
+    id ("dagger.hilt.android.plugin")
 
 }
 
@@ -74,6 +75,7 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.androidx.runtime.livedata)
     implementation (libs.androidx.lifecycle.runtime.compose)

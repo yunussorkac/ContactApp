@@ -2,18 +2,22 @@ package com.app.contact.repo
 
 import com.app.contact.dao.ContactDao
 import com.app.contact.model.Contact
+import javax.inject.Inject
 
-class DetailScreenRepo {
+class DetailScreenRepo @Inject constructor(
+    private val contactDao: ContactDao
 
-    suspend fun getContactById(contactDao: ContactDao, id : Int): Contact? {
+){
+
+    suspend fun getContactById(id : Int): Contact? {
         return contactDao.getContactById(id)
     }
 
-    suspend fun deleteContactById(contactDao: ContactDao, id : Int) {
+    suspend fun deleteContactById(id : Int) {
         contactDao.deleteContactById(id)
     }
 
-    suspend fun updateContact(contactDao: ContactDao, contact: Contact) {
+    suspend fun updateContact(contact: Contact) {
         contactDao.updateContact(contact)
     }
 
