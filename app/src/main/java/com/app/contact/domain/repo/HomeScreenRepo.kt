@@ -1,4 +1,4 @@
-package com.app.contact.repo
+package com.app.contact.domain.repo
 
 import com.app.contact.dao.ContactDao
 import com.app.contact.model.Contact
