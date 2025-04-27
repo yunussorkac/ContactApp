@@ -13,5 +13,9 @@ class HomeScreenRepo @Inject constructor(
         return contactDao.getAllContacts()
     }
 
+    suspend fun searchContacts(query: String): List<Contact> {
+        return contactDao.searchContacts("%$query%")
+    }
+
 
 }

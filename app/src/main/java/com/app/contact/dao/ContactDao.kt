@@ -23,4 +23,8 @@ interface ContactDao {
 
     @Update
     suspend fun updateContact(contact: Contact)
+
+    @Query("SELECT * FROM contact_list WHERE firstName LIKE :query OR lastName LIKE :query")
+    suspend fun searchContacts(query: String): List<Contact>
+
 }

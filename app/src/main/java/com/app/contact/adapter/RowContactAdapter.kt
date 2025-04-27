@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
@@ -31,7 +33,7 @@ import kotlin.math.absoluteValue
 @Composable
 fun RowContactAdapter(
     contact: Contact,
-    onClick: (Contact) -> Unit = {}
+    onClick: () -> Unit
 ) {
 
     val colorList = listOf(
@@ -52,46 +54,46 @@ fun RowContactAdapter(
     }
 
 
-    Column (
-        modifier = Modifier.wrapContentSize()
-            .padding(start = 5.dp)
-            .clickable { onClick(contact) },
-        horizontalAlignment = Alignment.CenterHorizontally
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(8.dp)
     ) {
-
-        if (contact.image != "null"){
-            Image(
-                painter = rememberAsyncImagePainter(contact.image),
-                contentDescription = "avatar",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(70.dp)
-                    .clip(CircleShape)
-            )
-        }else{
-            Box(
-                modifier = Modifier
-                    .size(70.dp)
-                    .clip(CircleShape)
-                    .background(backgroundColor),
-                contentAlignment = Alignment.Center
-            ) {
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .clip(CircleShape)
+                .background(backgroundColor),
+            contentAlignment = Alignment.Center
+        ) {
+            if (contact.image != "null") {
+                Image(
+                    painter = rememberAsyncImagePainter(contact.image),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
                 Text(
-                    text = contact.firstName.substring(0, 2).uppercase(),
+                    text = contact.firstName.first().uppercase() + contact.lastName.first().uppercase(),
+                    style = MaterialTheme.typography.titleLarge,
                     color = Color.White
                 )
             }
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(5.dp))
-
-        Text(text = "${contact.firstName} ${contact.lastName}",
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.labelSmall,
-            )
-
-
+        Text(
+            text = contact.firstName,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 
 }
+

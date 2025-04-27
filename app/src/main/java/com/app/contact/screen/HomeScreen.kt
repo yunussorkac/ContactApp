@@ -1,26 +1,30 @@
 package com.app.contact.screen
 
-import androidx.annotation.ColorRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,41 +33,51 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.app.contact.adapter.ContactAdapter
 import com.app.contact.adapter.RowContactAdapter
-import com.app.contact.db.ContactDatabase
 import com.app.contact.model.Contact
 import com.app.contact.ui.Screens
 import com.app.contact.viewmodel.HomeScreenViewModel
-import androidx.compose.runtime.collectAsState
-import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
 
 @Composable
-fun HomeScreen(navHostController: NavHostController){
-
+fun HomeScreen(navHostController: NavHostController) {
     var searchText by remember { mutableStateOf("") }
     val homeScreenViewModel = hiltViewModel<HomeScreenViewModel>()
-    val contactList by homeScreenViewModel.contactList.collectAsState()
+    val contactList by homeScreenViewModel.contactList.collectAsStateWithLifecycle()
+    val filteredList by homeScreenViewModel.filteredList.collectAsStateWithLifecycle()
+
     LaunchedEffect(Unit) {
         homeScreenViewModel.getAllContacts()
     }
 
+    LaunchedEffect(searchText) {
+        delay(300)
+        homeScreenViewModel.searchContacts(searchText)
+    }
+
+
     Scaffold(
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
                     navHostController.navigate(Screens.AddContactScreen)
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Contact")
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Contact",
+                    modifier = Modifier.padding(8.dp)
+                )
             }
         }
     ) { paddingValues ->
@@ -71,65 +85,144 @@ fun HomeScreen(navHostController: NavHostController){
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(top = 16.dp)
         ) {
-            Text(
-                text = "Contacts",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = "My Contacts",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                )
 
-            Spacer(modifier = Modifier.height(15.dp))
+                Text(
+                    text = "${contactList.size} contacts",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
-                label = { Text(text = "Search") },
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                shape = CircleShape,
+                placeholder = { Text("Search contacts") },
+                maxLines = 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            if (filteredList.isNotEmpty()) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp,vertical = 10.dp)
+                        .background(MaterialTheme.colorScheme.surface)
+                ) {
+                    items(filteredList) { contact ->
+                        RowContactAdapter(
+                            contact = contact,
+                            onClick = {
+                                navHostController.navigate(Screens.DetailScreen(contact.id))
+                            }
+                        )
+                    }
 
-            Text(
-                text = "Recent Added",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 10.dp)
-            )
 
-            Spacer(modifier = Modifier.height(15.dp))
 
-            LazyRow(
-                modifier = Modifier.padding(horizontal = 5.dp)
+                }
+            }
+
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             ) {
-                items(contactList.takeLast(10).reversed()) { contact ->
-                    RowContactAdapter(contact){
-                        navHostController.navigate(Screens.DetailScreen(contact.id))
+                Text(
+                    text = "Recent",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                LazyRow(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(contactList.takeLast(10).reversed()) { contact ->
+                        RowContactAdapter(
+                            contact = contact,
+                            onClick = {
+                                navHostController.navigate(Screens.DetailScreen(contact.id))
+                            }
+                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = "My Contacts (${contactList.size})",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            LazyColumn(
-                modifier = Modifier.padding(start = 5.dp)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             ) {
-                items(contactList) { contact ->
-                    ContactAdapter(contact){
-                        navHostController.navigate(Screens.DetailScreen(contact.id))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                ) {
+                    Text(
+                        text = "All Contacts",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        items(contactList.sortedBy(Contact::firstName)) { contact ->
+                            ContactAdapter(
+                                contact = contact,
+                                onClick = {
+                                    navHostController.navigate(Screens.DetailScreen(contact.id))
+                                }
+                            )
+                        }
                     }
                 }
             }

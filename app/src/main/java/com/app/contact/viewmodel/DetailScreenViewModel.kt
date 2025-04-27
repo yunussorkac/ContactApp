@@ -8,6 +8,9 @@ import com.app.contact.domain.usecase.DeleteContactByIdUseCase
 import com.app.contact.domain.usecase.GetContactByIdUseCase
 import com.app.contact.domain.usecase.UpdateContactUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,8 +21,17 @@ class DetailScreenViewModel @Inject constructor(
     private val updateContactUseCase: UpdateContactUseCase
 ) : ViewModel() {
 
-    suspend fun getContactById(id: Int): Contact? {
-        return getContactByIdUseCase(id).getOrNull()
+    private val _contact = MutableStateFlow<Contact?>(null)
+    val contact : StateFlow<Contact?> get() = _contact.asStateFlow()
+
+
+    fun getContactById(id: Int) {
+        viewModelScope.launch {
+            getContactByIdUseCase(id)
+                .onSuccess { contact ->
+                    _contact.value = contact
+                }
+        }
     }
 
     fun deleteContactById(id: Int, onComplete: (Boolean) -> Unit = {}) {
